@@ -3,16 +3,16 @@
  * Compatible con SharpDevelop 4.4 / .NET Framework 2.0+
  */
 
-using System;
+	using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-
 
 namespace laboratoriPizzeriaCampusExpress
 {
     public partial class MainForm : Form
     {
         // Colecciones principales: FIFO para pedidos, LIFO para bitácora
+        private Queue<string> Premiun = new Queue<string>();
         private Queue<string> colaPedidos = new Queue<string>();
         private Stack<string> pilaBitacora = new Stack<string>();
 
@@ -28,7 +28,7 @@ namespace laboratoriPizzeriaCampusExpress
             string cliente = txtCliente.Text.Trim();
 
             // Validar entrada
-            if (string.IsNullOrWhiteSpace(cliente))
+            if (cliente == "")
             {
                 lblEstado.Text = string.Format("⚠️ Debe ingresar un nombre de cliente.");
                 return;
@@ -45,11 +45,14 @@ namespace laboratoriPizzeriaCampusExpress
             lblEstado.Text = string.Format("✅ Pedido registrado para {0}", cliente);
             ActualizarUI();
         }
+        
 
         // PASO 2: Entregar pedido (FIFO salida)
         private void BtnEntregar_Click(object sender, EventArgs e)
         {
-            if (colaPedidos.Count == 0)
+        	 if (Premiun.Count == 0)
+            {
+                 if (colaPedidos.Count == 0)
             {
                 lblEstado.Text = string.Format("❌ No hay pedidos pendientes.");
                 return;
@@ -59,6 +62,13 @@ namespace laboratoriPizzeriaCampusExpress
             pilaBitacora.Push(string.Format("ENTREGADO: {0}", cliente));
             lblEstado.Text = string.Format("🍕 Pedido entregado a {0}", cliente);
             ActualizarUI();
+            }
+        	 else {
+            string cliente = Premiun.Dequeue();
+            pilaBitacora.Push(string.Format("ENTREGADO: {0}", cliente));
+            lblEstado.Text = string.Format("🍕 Pedido entregado a {0}", cliente);
+            ActualizarUI();
+        }
         }
 
         // PASO 3: Deshacer última acción (LIFO + lógica de reversión)
@@ -115,6 +125,7 @@ namespace laboratoriPizzeriaCampusExpress
         private void ActualizarUI()
         {
             // Limpiar listas visuales
+            lstPremium.Items.Clear();
             lstPedidos.Items.Clear();
             lstBitacora.Items.Clear();
 
@@ -123,6 +134,12 @@ namespace laboratoriPizzeriaCampusExpress
                 lstPedidos.Items.Add(p);
             if (colaPedidos.Count == 0)
                 lstPedidos.Items.Add("(Sin pedidos pendientes)");
+            
+            foreach (string p in Premiun)
+                lstPremium.Items.Add(p);
+            if (Premiun.Count == 0)
+                lstPremium.Items.Add("(Sin pedidos premium)");
+
 
             // Mostrar bitácora (pila)
             foreach (string accion in pilaBitacora)
@@ -131,8 +148,31 @@ namespace laboratoriPizzeriaCampusExpress
                 lstBitacora.Items.Add("(Sin acciones registradas)");
 
             // Actualizar contador
-            lblContador.Text = string.Format("Pedidos: {0} | Bitácora: {1}",
-                colaPedidos.Count, pilaBitacora.Count);
+            lblContador.Text = string.Format("Pedidos: {0} |Premiun: {1} | Bitácora: {2}",
+                colaPedidos.Count,Premiun.Count, pilaBitacora.Count);
+        }
+        
+        void BtnpremiunClick(object sender, EventArgs e)
+        {
+            string cliente = txtCliente.Text.Trim();
+
+            // Validar entrada
+            if (cliente == "")
+            {
+                lblEstado.Text = string.Format("Debe ingresar un nombre de cliente.");
+                return;
+            }
+
+            // Agregar a la cola
+            Premiun.Enqueue(cliente);
+
+            // Registrar en la pila
+            pilaBitacora.Push(string.Format("PEDIDO: {0}", cliente));
+
+            // Limpiar campo y actualizar
+            txtCliente.Clear();
+            lblEstado.Text = string.Format("Pedido registrado para {0}", cliente);
+            ActualizarUI();	
         }
     }
 }
