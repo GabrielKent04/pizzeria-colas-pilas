@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
+
 namespace laboratoriPizzeriaCampusExpress
 {
     public partial class MainForm : Form
@@ -27,7 +28,7 @@ namespace laboratoriPizzeriaCampusExpress
             string cliente = txtCliente.Text.Trim();
 
             // Validar entrada
-            if (cliente == "")
+            if (string.IsNullOrWhiteSpace(cliente))
             {
                 lblEstado.Text = string.Format("⚠️ Debe ingresar un nombre de cliente.");
                 return;
